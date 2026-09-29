@@ -731,6 +731,10 @@
       const rb = regBill(p.id);
       if (!rb) return toast('Generate the registration bill for this patient first.', true);
       if (rb.status !== 'Paid') return toast('The registration bill must be marked Paid before a token can be generated.', true);
+      // Tokens follow appointment time: an earlier waiting appointment must get its token first
+      const earlier = getTable('appts').filter(x => x.id != a.id && x.date === a.date && x.status === 'booked' && !x.token && x.time < a.time)
+        .sort((x, y) => x.time.localeCompare(y.time))[0];
+      if (earlier) return toast('Generate the token for ' + pn(earlier.pid) + ' (' + fmtTime(earlier.time) + ') first, or cancel that appointment.', true);
       const n = getTable('appts').filter(x => x.date === a.date && x.token).reduce((m, x) => Math.max(m, parseInt(x.token.slice(1)) || 0), 0) + 1;
       const token = 'T' + String(n).padStart(3, '0');
       updateRow('appts', id, { status: 'checkedin', token });
