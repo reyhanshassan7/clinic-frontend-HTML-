@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pharmacist Portal</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginPage">
+  <h2>Pharmacist login</h2>
+
+  <label>Username</label>
+  <input id="username">
+
+  <label>Password</label>
+  <input id="password" type="password">
+
+  <p id="loginError"></p>
+
+  <button onclick="login()">Sign in</button>
+</div>
+
+
+<!-- ================= PHARMACIST PORTAL ================= -->
+<div id="portal" class="hidden">
+
+  <header>
+    <b id="pharmacistName"></b>
+
+    <nav>
+      <button id="tab-dashboard" onclick="showTab('dashboard')">Dashboard</button>
+      <button id="tab-queue" onclick="showTab('queue')">Prescriptions</button>
+      <button id="tab-stock" onclick="showTab('stock')">Medicine stock</button>
+      <button id="tab-history" onclick="showTab('history')">History</button>
+      <button id="tab-bills" onclick="showTab('bills')">Bills</button>
+    </nav>
+
+    <button class="light" onclick="logout()">Sign out</button>
+  </header>
+
+  <main>
+    <div id="page-dashboard"></div>
+    <div id="page-queue" class="hidden"></div>
+    <div id="page-stock" class="hidden"></div>
+    <div id="page-history" class="hidden"></div>
+    <div id="page-bills" class="hidden"></div>
+  </main>
+</div>
+
+
+<!-- ================= DISPENSE POPUP ================= -->
+<dialog id="dispenseDialog">
+  <h2 id="dispenseTitle"></h2>
+
+  <p class="small-note">
+    Enter the number of strips to give now. If stock is limited, the remaining quantity stays in the Prescriptions list.
+  </p>
+
+  <div id="dispenseItems"></div>
+
+  <button onclick="saveDispense()">Dispense</button>
+  <button class="light" onclick="closeDialog('dispenseDialog')">Cancel</button>
+</dialog>
+
+
+<!-- ================= ADD STOCK POPUP ================= -->
+<dialog id="stockDialog">
+  <h2 id="stockTitle">Add stock</h2>
+
+  <label>Batch number</label>
+  <input id="batchNumber" placeholder="e.g. PCM002">
+
+  <label>Number of boxes received</label>
+  <input id="boxCount" type="number" min="1">
+
+  <label>Strips in one box</label>
+  <input id="stripsPerBox" type="number" min="1">
+
+  <label>Expiry date</label>
+  <input id="expiryDate" type="date">
+
+  <p class="small-note">
+    Example: 5 boxes × 10 strips = 50 strips.
+    A new stock entry creates a new batch.
+  </p>
+
+  <button onclick="saveStock()">Save stock</button>
+  <button class="light" onclick="closeDialog('stockDialog')">Cancel</button>
+</dialog>
+
+
+<!-- ================= VIEW BATCHES POPUP ================= -->
+<dialog id="batchDialog">
+  <h2 id="batchTitle"></h2>
+  <div id="batchContent"></div>
+
+  <button class="light" onclick="closeDialog('batchDialog')">Close</button>
+</dialog>
+
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/stock.js"></script>
+<script src="js/medicines.js"></script>
+<script src="js/prescriptions.js"></script>
+<script src="js/billing.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
