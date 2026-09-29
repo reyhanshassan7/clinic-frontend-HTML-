@@ -17,10 +17,19 @@ button {
     background: #0f8b8d;
     color: #fff;
     cursor: pointer;
+    transition: background-color 140ms ease, box-shadow 140ms ease;
 }
 
 button:hover {
     opacity: 0.9;
+    box-shadow: 0 2px 6px rgba(18, 65, 61, 0.14);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid rgba(15, 139, 141, 0.35);
+    outline-offset: 2px;
 }
 
 button.light {
@@ -86,6 +95,8 @@ label {
     background: #fff;
     padding: 24px;
     border-radius: 10px;
+    border: 1px solid #e3ebe8;
+    box-shadow: 0 8px 22px rgba(22, 58, 53, 0.07);
 }
 
 #loginError,
@@ -108,6 +119,7 @@ header {
     align-items: center;
 
     gap: 15px;
+    box-shadow: 0 2px 8px rgba(22, 58, 53, 0.04);
 }
 
 nav {
@@ -125,6 +137,7 @@ nav button {
 nav button.active {
     color: #0f8b8d;
     font-weight: bold;
+    background: #f1f7f5;
     border-bottom: 2px solid #0f8b8d;
     border-radius: 0;
 }
@@ -152,10 +165,19 @@ main {
     padding: 20px;
     border-radius: 8px;
     min-width: 140px;
+    border: 1px solid #e5ece9;
+    border-top: 3px solid #0f8b8d;
+    box-shadow: 0 2px 8px rgba(22, 58, 53, 0.04);
+    transition: box-shadow 140ms ease, transform 140ms ease;
 
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+.dashboard-box:hover {
+    box-shadow: 0 5px 14px rgba(22, 58, 53, 0.09);
+    transform: translateY(-2px);
 }
 
 .dashboard-box b {
@@ -219,6 +241,10 @@ th {
     color: #667;
 }
 
+tbody tr:hover {
+    background: #f6faf8;
+}
+
 td button {
     margin-right: 5px;
 }
@@ -238,10 +264,12 @@ dialog {
     border-radius: 10px;
     padding: 22px;
     width: min(500px, 92vw);
+    box-shadow: 0 16px 42px rgba(16, 45, 40, 0.2);
 }
 
 dialog::backdrop {
     background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
 }
 
 
