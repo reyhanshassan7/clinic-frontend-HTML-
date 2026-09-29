@@ -167,6 +167,34 @@ main {
     color: #667;
 }
 
+.stockAlert {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-left: 4px solid #c8413b;
+    background: #fff0ee;
+    color: #722d29;
+}
+
+.stockAlert strong {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.stockAlert ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.stock-low {
+    color: #9a6700;
+    font-weight: bold;
+}
+
+.stock-out {
+    color: #c8413b;
+    font-weight: bold;
+}
+
 
 /* TABLE */
 

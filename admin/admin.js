@@ -58,6 +58,8 @@ const defaultDepartments = [
     }
 ];
 
+const LOW_STOCK_THRESHOLD = 10;
+
 
 /* =====================================================
    LOCAL STORAGE
@@ -100,6 +102,74 @@ function saveData(key, data) {
         key,
         JSON.stringify(data)
     );
+}
+
+
+function getMedicines() {
+
+    const medicines = getData("medicines", []);
+    const normalized = medicines.map(function (medicine) {
+        return {
+            ...medicine,
+            manufacturer: medicine.manufacturer || "",
+            stock: Number.isInteger(Number(medicine.stock)) ? Number(medicine.stock) : 0,
+            price: Number(medicine.price ?? medicine.mrp ?? medicine.cost ?? 0),
+            expiry_date: medicine.expiry_date || "",
+            is_active: medicine.is_active ?? medicine.active ?? true
+        };
+    });
+
+    if (JSON.stringify(normalized) !== JSON.stringify(medicines)) {
+        saveData("medicines", normalized);
+    }
+
+    return normalized;
+}
+
+
+let pendingDeleteAction = null;
+
+
+function showMessage(message, title = "Notice") {
+
+    document.getElementById("messageTitle").textContent = title;
+    document.getElementById("messageText").textContent = message;
+    document.getElementById("messageDialog").showModal();
+}
+
+
+function closeMessageDialog() {
+
+    document.getElementById("messageDialog").close();
+}
+
+
+function requestDeleteConfirmation(message, action, title = "Confirm Delete", buttonLabel = "Delete") {
+
+    pendingDeleteAction = action;
+    document.getElementById("deleteTitle").textContent = title;
+    document.getElementById("deleteMessage").textContent = message;
+    document.getElementById("deleteActionButton").textContent = buttonLabel;
+    document.getElementById("deleteDialog").showModal();
+}
+
+
+function closeDeleteDialog() {
+
+    pendingDeleteAction = null;
+    document.getElementById("deleteDialog").close();
+}
+
+
+function confirmDelete() {
+
+    const action = pendingDeleteAction;
+    pendingDeleteAction = null;
+    document.getElementById("deleteDialog").close();
+
+    if (action) {
+        action();
+    }
 }
 
 
@@ -242,11 +312,15 @@ function login() {
 
 function logout() {
 
-    localStorage.removeItem(
-        "adminLoggedIn"
+    requestDeleteConfirmation(
+        "Are you sure you want to log out?",
+        function () {
+            localStorage.removeItem("adminLoggedIn");
+            location.reload();
+        },
+        "Confirm Logout",
+        "Logout"
     );
-
-    location.reload();
 }
 
 
@@ -483,10 +557,7 @@ function loadAll() {
     );
 
 
-    getData(
-        "medicines",
-        []
-    );
+    getMedicines();
 
 
     getData(
@@ -536,11 +607,7 @@ function updateDashboard() {
         );
 
 
-    const medicines =
-        getData(
-            "medicines",
-            []
-        );
+    const medicines = getMedicines();
 
 
     const labs =
@@ -600,10 +667,54 @@ function updateDashboard() {
     }
 
 
+    updateMedicineStockAlert(medicines);
+
+
     if (labCount) {
         labCount.textContent =
             labs.length;
     }
+}
+
+
+function updateMedicineStockAlert(medicines) {
+
+    const alertContainer =
+        document.getElementById("medicineStockAlert");
+
+    if (!alertContainer) {
+        return;
+    }
+
+    const activeMedicines = medicines.filter(medicine => medicine.is_active);
+    const outOfStock = activeMedicines.filter(medicine => medicine.stock === 0);
+    const lowStock = activeMedicines.filter(
+        medicine => medicine.stock > 0 && medicine.stock <= LOW_STOCK_THRESHOLD
+    );
+
+    alertContainer.replaceChildren();
+    alertContainer.classList.toggle(
+        "hidden",
+        outOfStock.length === 0 && lowStock.length === 0
+    );
+
+    if (alertContainer.classList.contains("hidden")) {
+        return;
+    }
+
+    const heading = document.createElement("strong");
+    heading.textContent = `Medicine stock alert (low stock: ${LOW_STOCK_THRESHOLD} or less)`;
+
+    const list = document.createElement("ul");
+    [...outOfStock, ...lowStock].forEach(function (medicine) {
+        const item = document.createElement("li");
+        item.textContent = medicine.stock === 0
+            ? `${medicine.name}: Out of stock`
+            : `${medicine.name}: Low stock (${medicine.stock} left)`;
+        list.appendChild(item);
+    });
+
+    alertContainer.append(heading, list);
 }
 
 
@@ -744,9 +855,7 @@ function saveRole() {
 
     if (!name) {
 
-        alert(
-            "Please enter role name."
-        );
+        showMessage("Please enter role name.", "Check details");
 
         return;
     }
@@ -857,35 +966,27 @@ function editRole(id) {
 
 function deleteRole(id) {
 
-    if (
-        !confirm(
-            "Delete this role?"
-        )
-    ) {
-        return;
-    }
-
-
-    let roles =
+    const roles =
         getData(
             "roles",
             defaultRoles
         );
 
 
-    roles =
-        roles.filter(
-            role => role.id !== id
+    const role = roles.find(item => item.id === id);
+
+    if (!role) {
+        return;
+    }
+
+    requestDeleteConfirmation(`Delete ${role.name}?`, function () {
+        saveData(
+            "roles",
+            roles.filter(item => item.id !== id)
         );
 
-
-    saveData(
-        "roles",
-        roles
-    );
-
-
-    loadRoles();
+        loadRoles();
+    });
 }
 
 
@@ -1296,9 +1397,7 @@ function saveStaff() {
 
     if (!name) {
 
-        alert(
-            "Enter full name."
-        );
+        showMessage("Enter full name.", "Check details");
 
         return;
     }
@@ -1306,25 +1405,21 @@ function saveStaff() {
 
     if (!username) {
 
-        alert(
-            "Enter username."
-        );
+        showMessage("Enter username.", "Check details");
 
         return;
     }
 
 
     if (username.length < 3) {
-        alert("Username must be at least 3 characters.");
+        showMessage("Username must be at least 3 characters.", "Check details");
         return;
     }
 
 
     if ((!id && !password) || (password && password.length < 8)) {
 
-        alert(
-            "Password must be at least 8 characters."
-        );
+        showMessage("Password must be at least 8 characters.", "Check details");
 
         return;
     }
@@ -1332,16 +1427,14 @@ function saveStaff() {
 
     if (!role) {
 
-        alert(
-            "Select role."
-        );
+        showMessage("Select role.", "Check details");
 
         return;
     }
 
 
     if (role === "Doctor" && !department) {
-        alert("Select a department for the doctor.");
+        showMessage("Select a department for the doctor.", "Check details");
         return;
     }
 
@@ -1369,9 +1462,7 @@ function saveStaff() {
 
     if (duplicate) {
 
-        alert(
-            "Username already exists."
-        );
+        showMessage("Username already exists.", "Check details");
 
         return;
     }
@@ -1523,16 +1614,13 @@ function saveStaff() {
     );
 
 
-    alert(
-        "Staff saved successfully."
-    );
-
-
     closeStaffForm();
 
     loadStaff();
 
     updateDashboard();
+
+    showMessage("Staff saved successfully.", "Success");
 }
 
 
@@ -1711,30 +1799,15 @@ function deleteStaff(id) {
     }
 
 
-    if (
-        !confirm(
-            `Delete ${person.name}?`
-        )
-    ) {
-        return;
-    }
-
-
-    const updated =
-        staff.filter(
-            p => p.id !== id
+    requestDeleteConfirmation(`Delete ${person.name}?`, function () {
+        saveData(
+            "staff",
+            staff.filter(p => p.id !== id)
         );
 
-
-    saveData(
-        "staff",
-        updated
-    );
-
-
-    loadStaff();
-
-    updateDashboard();
+        loadStaff();
+        updateDashboard();
+    });
 }
 
 
@@ -1895,36 +1968,22 @@ function saveDepartment() {
 
 function deleteDepartment(id) {
 
-    if (
-        !confirm(
-            "Delete this department?"
-        )
-    ) {
-        return;
-    }
-
-
-    let departments =
+    const departments =
         getData(
             "departments",
             defaultDepartments
         );
 
 
-    departments =
-        departments.filter(
-            department =>
-                department.id !== id
+    requestDeleteConfirmation("Delete this department?", function () {
+        saveData(
+            "departments",
+            departments.filter(department => department.id !== id)
         );
 
-
-    saveData(
-        "departments",
-        departments
-    );
-
-
-    loadDepartments();
+        loadDepartments();
+        loadDepartmentOptions();
+    });
 }
 
 
@@ -1934,11 +1993,7 @@ function deleteDepartment(id) {
 
 function loadMedicines() {
 
-    const medicines =
-        getData(
-            "medicines",
-            []
-        );
+    const medicines = getMedicines();
 
 
     const table =
@@ -1959,7 +2014,7 @@ function loadMedicines() {
 
         table.innerHTML = `
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     No medicines found.
                 </td>
             </tr>
@@ -1988,18 +2043,27 @@ function loadMedicines() {
                     </td>
 
                     <td>
-                        ${medicine.generic}
+                        ${medicine.stock}
                     </td>
 
                     <td>
-                        ${medicine.cost}
+                        ${Number(medicine.price).toFixed(2)}
                     </td>
 
                     <td>
-                        ${medicine.mrp}
+                        ${medicine.expiry_date || "-"}
                     </td>
 
                     <td>
+                        ${medicine.is_active ? "Active" : "Inactive"}
+                    </td>
+
+                    <td>
+
+                        <button
+                            onclick="editMedicine(${medicine.id})">
+                            Edit
+                        </button>
 
                         <button
                             class="light"
@@ -2021,11 +2085,13 @@ function loadMedicines() {
 
 function addMedicine() {
 
-    ["medicineName", "medicineManufacturer", "medicineGeneric", "medicineCost", "medicineMrp"]
+    ["medicineId", "medicineName", "medicineManufacturer", "medicineStock", "medicinePrice", "medicineExpiryDate"]
         .forEach(function (id) {
             document.getElementById(id).value = "";
         });
 
+    document.getElementById("medicineIsActive").checked = true;
+    document.getElementById("medicineFormTitle").textContent = "Add Medicine";
     document.getElementById("medicineError").textContent = "";
     document.getElementById("medicineDialog").showModal();
 }
@@ -2039,68 +2105,74 @@ function closeMedicineForm() {
 
 function saveMedicine() {
 
+    const id =
+        document.getElementById("medicineId").value;
+
     const name =
         document.getElementById("medicineName").value.trim();
 
     const manufacturer =
         document.getElementById("medicineManufacturer").value.trim();
 
-    const generic =
-        document.getElementById("medicineGeneric").value.trim();
+    const stockValue =
+        document.getElementById("medicineStock").value;
 
-    const cost =
-        document.getElementById("medicineCost").value;
+    const priceValue =
+        document.getElementById("medicinePrice").value;
 
-    const mrp =
-        document.getElementById("medicineMrp").value;
+    const expiryDate =
+        document.getElementById("medicineExpiryDate").value;
+
+    const isActive =
+        document.getElementById("medicineIsActive").checked;
 
     const errorElement =
         document.getElementById("medicineError");
 
-    if (!name || !manufacturer || !generic || cost === "" || mrp === "") {
-        errorElement.textContent = "Enter all medicine details.";
+    if (!name || stockValue === "" || priceValue === "") {
+        errorElement.textContent = "Enter medicine name, stock, and price.";
         return;
     }
 
-    if (!Number.isFinite(Number(cost)) || Number(cost) < 0 || !Number.isFinite(Number(mrp)) || Number(mrp) < 0) {
-        errorElement.textContent = "Enter valid non-negative prices.";
+    const stock = Number(stockValue);
+    const price = Number(priceValue);
+
+    if (!Number.isInteger(stock) || stock < 0) {
+        errorElement.textContent = "Stock must be a whole number of 0 or more.";
+        return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+        errorElement.textContent = "Enter a valid non-negative price.";
         return;
     }
 
 
-    let medicines =
-        getData(
-            "medicines",
-            []
-        );
+    const medicines = getMedicines();
+    const medicineData = {
+        name: name,
+        manufacturer: manufacturer || null,
+        stock: stock,
+        price: price,
+        expiry_date: expiryDate || null,
+        is_active: isActive
+    };
 
+    if (id) {
+        const medicine = medicines.find(item => item.id == id);
 
-    const newId =
-        medicines.length
-            ? Math.max(
-                ...medicines.map(
-                    m => m.id
-                )
-            ) + 1
+        if (!medicine) {
+            return;
+        }
+
+        Object.assign(medicine, medicineData);
+    } else {
+        const newId = medicines.length
+            ? Math.max(...medicines.map(medicine => medicine.id)) + 1
             : 1;
 
-
-    medicines.push({
-
-        id: newId,
-
-        name: name.trim(),
-
-        manufacturer:
-            manufacturer.trim(),
-
-        generic:
-            generic.trim(),
-
-        cost: Number(cost),
-
-        mrp: Number(mrp)
-    });
+        medicines.push({id: newId, ...medicineData});
+    }
 
 
     saveData(
@@ -2111,45 +2183,50 @@ function saveMedicine() {
 
     closeMedicineForm();
     loadMedicines();
-
     updateDashboard();
+    showMessage("Medicine saved successfully.", "Success");
+}
+
+
+function editMedicine(id) {
+
+    const medicine = getMedicines().find(item => item.id === id);
+
+    if (!medicine) {
+        return;
+    }
+
+    document.getElementById("medicineId").value = medicine.id;
+    document.getElementById("medicineName").value = medicine.name || "";
+    document.getElementById("medicineManufacturer").value = medicine.manufacturer || "";
+    document.getElementById("medicineStock").value = medicine.stock;
+    document.getElementById("medicinePrice").value = medicine.price;
+    document.getElementById("medicineExpiryDate").value = medicine.expiry_date || "";
+    document.getElementById("medicineIsActive").checked = medicine.is_active;
+    document.getElementById("medicineFormTitle").textContent = "Edit Medicine";
+    document.getElementById("medicineError").textContent = "";
+    document.getElementById("medicineDialog").showModal();
 }
 
 
 function deleteMedicine(id) {
 
-    if (
-        !confirm(
-            "Delete this medicine?"
-        )
-    ) {
-        return;
-    }
-
-
-    let medicines =
+    const medicines =
         getData(
             "medicines",
             []
         );
 
 
-    medicines =
-        medicines.filter(
-            medicine =>
-                medicine.id !== id
+    requestDeleteConfirmation("Delete this medicine?", function () {
+        saveData(
+            "medicines",
+            medicines.filter(medicine => medicine.id !== id)
         );
 
-
-    saveData(
-        "medicines",
-        medicines
-    );
-
-
-    loadMedicines();
-
-    updateDashboard();
+        loadMedicines();
+        updateDashboard();
+    });
 }
 
 
@@ -2346,37 +2423,21 @@ function saveLabTest() {
 
 function deleteLabTest(id) {
 
-    if (
-        !confirm(
-            "Delete this lab test?"
-        )
-    ) {
-        return;
-    }
-
-
-    let labs =
+    const labs =
         getData(
             "labs",
             []
         );
 
 
-    labs =
-        labs.filter(
-            lab =>
-                lab.id !== id
+    requestDeleteConfirmation("Delete this lab test?", function () {
+        saveData(
+            "labs",
+            labs.filter(lab => lab.id !== id)
         );
 
-
-    saveData(
-        "labs",
-        labs
-    );
-
-
-    loadLabs();
-
-    updateDashboard();
+        loadLabs();
+        updateDashboard();
+    });
 }
 
