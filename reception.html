@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reception Portal</title>
+
+  <style>
+    /* ---- Basic look ---- */
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #f6f8f8;
+      color: #222;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+    }
+
+    button {
+      padding: 7px 14px;
+      border: 0;
+      border-radius: 6px;
+      background: #0f8b8d;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button.light {
+      background: #e6efee;
+      color: #12313a;
+      padding: 4px 9px;
+      font-size: 13px;
+    }
+
+    button.red {
+      background: #fbe5e3;
+      color: #c8413b;
+      padding: 4px 9px;
+      font-size: 13px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 4px 0 12px;
+      border: 1px solid #ccd6d4;
+      border-radius: 6px;
+      font: inherit;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    label {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* ---- Login card ---- */
+    #loginPage {
+      max-width: 320px;
+      margin: 15vh auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 10px;
+    }
+
+    #loginError,
+    .err {
+      color: #c8413b;
+      min-height: 20px;
+    }
+
+    /* ---- Top bar and tabs ---- */
+    header {
+      background: #fff;
+      border-bottom: 1px solid #dde5e3;
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    nav button {
+      background: none;
+      color: #555;
+      padding: 6px 12px;
+    }
+
+    nav button.active {
+      color: #0f8b8d;
+      font-weight: bold;
+      border-bottom: 2px solid #0f8b8d;
+      border-radius: 0;
+    }
+
+    header>button {
+      background: #e6efee;
+      color: #12313a;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* ---- Tables, cards, toolbar ---- */
+    table {
+      width: 100%;
+      background: #fff;
+      border-collapse: collapse;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid #eef2f1;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #eef3f2;
+      font-size: 13px;
+      color: #667;
+    }
+
+    td select {
+      width: auto;
+      margin: 0;
+      padding: 4px;
+    }
+
+    .tw {
+      overflow-x: auto;
+    }
+
+    .empty {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      color: #777;
+    }
+
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .bar input,
+    .bar select {
+      width: auto;
+      flex: 1;
+      min-width: 140px;
+      max-width: 280px;
+      margin: 0;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 14px;
+      border-radius: 8px;
+      border-left: 4px solid #0f8b8d;
+    }
+
+    .card small {
+      color: #667;
+    }
+
+    .card b {
+      display: block;
+      font-size: 22px;
+      margin-top: 4px;
+    }
+
+    .box {
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 800px) {
+      .two {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tag {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      background: #eef3f2;
+      text-transform: capitalize;
+    }
+
+    .tag.checkedin,
+    .tag.Paid,
+    .tag.completed {
+      background: #dff5e3;
+      color: #1b7a34;
+    }
+
+    .tag.booked,
+    .tag.Pending {
+      background: #fff3d6;
+      color: #8a6100;
+    }
+
+    .tag.cancelled,
+    .tag.Cancelled {
+      background: #fbe5e3;
+      color: #c8413b;
+    }
+
+    .tag.none {
+      background: #eee;
+      color: #777;
+    }
+
+    .tag.token {
+      background: #e0f0ff;
+      color: #1a5d99;
+      font-weight: bold;
+    }
+
+    /* ---- Popup form ---- */
+    dialog {
+      border: 0;
+      border-radius: 10px;
+      padding: 22px;
+      width: min(560px, 94vw);
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .toast {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #1b7a34;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      z-index: 99;
+    }
+
+    .toast.bad {
+      background: #c8413b;
+    }
+
+    /* ---- Receipt ---- */
+    .receipt {
+      font-family: monospace;
+      max-width: 380px;
+      margin: auto;
+    }
+
+    .receipt h2,
+    .c {
+      text-align: center;
+    }
+
+    .rr {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 3px 0;
+    }
+
+    .big {
+      font-size: 17px;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      .receipt,
+      .receipt *,
+      #printArea,
+      #printArea * {
+        visibility: visible;
+      }
+
+      .receipt,
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================= LOGIN ================= -->
+  <div id="loginPage">
+    <h2>Reception login</h2>
+    <label>Username</label>
+    <input id="username" value="reception">
+    <label>Password</label>
+    <input id="password" type="password" value="recep123">
+    <p id="loginError"></p>
+    <button onclick="login()">Sign in</button>
+  </div>
+
+  <!-- ================= PORTAL ================= -->
+  <div id="portal" class="hidden">
+    <header>
+      <b id="who"></b>
+      <nav id="nav"></nav>
+      <button onclick="logout()">Sign out</button>
+    </header>
+    <main id="page"></main>
+  </div>
+
+  <!-- ================= POPUP (forms, patient view, receipt) ================= -->
+  <dialog id="dlg">
+    <h2 id="dlgTitle"></h2>
+    <div id="dlgBody"></div>
+    <p id="dlgError" class="err"></p>
+    <button id="dlgSave" onclick="submitForm()">Save</button>
+    <button class="light" onclick="document.getElementById('dlg').close()">Close</button>
+  </dialog>
+
+
+  <script>
+    // =====================================================
+    // 1. DATABASE  (uses the browser's localStorage)
+    //    Same tables as the Doctor portal: users, patients, appts, consults, rx, labs, meds
+    //    New table used here: bills, settings
+    // =====================================================
+    function getTable(name) { return JSON.parse(localStorage.getItem('cms_' + name) || '[]'); }
+    function saveTable(name, rows) { localStorage.setItem('cms_' + name, JSON.stringify(rows)); }
+
+    function addRow(name, row) {
+      const rows = getTable(name);
+      do { row.id = Date.now() + Math.floor(Math.random() * 1000000); } while (rows.some(r => r.id === row.id));
+      row.created = new Date().toISOString();
+      rows.push(row);
+      saveTable(name, rows);
+      return row;
+    }
+    function updateRow(name, id, changes) {
+      saveTable(name, getTable(name).map(row => row.id == id ? { ...row, ...changes } : row));
+    }
+    function deleteRow(name, id) { saveTable(name, getTable(name).filter(row => row.id != id)); }
+    function findRow(name, id) { return getTable(name).find(row => row.id == id) || {}; }
+
+
+    // =====================================================
+    // 2. SAMPLE DATA  (same as the Doctor portal, created only once)
+    // =====================================================
+    function createSampleData() {
+      if (localStorage.getItem('cms_seeded')) return;
+
+      addRow('users', { name: 'System Admin', username: 'admin', password: 'admin123', role: 'admin' });
+      addRow('users', { name: 'Anita Rao', username: 'reception', password: 'recep123', role: 'reception' });
+      addRow('users', { name: 'Dr. Meera Nair', username: 'doctor', password: 'doctor123', role: 'doctor' });
+      addRow('users', { name: 'Ravi Kumar', username: 'pharma', password: 'pharma123', role: 'pharmacist' });
+      addRow('users', { name: 'Sneha Pillai', username: 'lab', password: 'lab123', role: 'lab' });
+
+      const doctor = getTable('users').find(u => u.role === 'doctor');
+      addRow('patients', { code: 'P-1001', name: 'Arun Menon', age: 34, gender: 'Male', phone: '9847000001', address: 'Kowdiar', did: doctor.id, regDate: today() });
+      addRow('patients', { code: 'P-1002', name: 'Latha S', age: 52, gender: 'Female', phone: '9847000002', address: 'Pattom', did: doctor.id, regDate: today() });
+
+      addRow('meds', { name: 'Paracetamol 500mg', stock: 120, min: 30 });
+      addRow('meds', { name: 'Amoxicillin 250mg', stock: 60, min: 20 });
+      addRow('meds', { name: 'Metformin 500mg', stock: 15, min: 20 });
+
+      const patients = getTable('patients');
+      patients.forEach((p, i) => addRow('bills', {
+        code: 'REG00' + (i + 1), type: 'registration', pid: p.id, pcode: p.code, pname: p.name,
+        amount: 200, method: 'Cash', status: 'Paid', date: today(), time: '09:00'
+      }));
+      addRow('appts', { pid: patients[0].id, did: doctor.id, date: today(), time: '10:00', reason: 'Fever for 3 days', status: 'checkedin', token: 'T001' });
+      addRow('appts', { pid: patients[1].id, did: doctor.id, date: today(), time: '10:30', reason: 'Routine diabetes review', status: 'booked', token: '' });
+
+      localStorage.setItem('cms_seeded', '1');
+    }
+
+
+    // =====================================================
+    // 3. SMALL HELPERS
+    // =====================================================
+    let user = null;        // the logged-in receptionist
+    let currentTab = 'dashboard';
+    let onSave = null;      // what the popup's Save button does
+
+    const $ = id => document.getElementById(id);
+    const val = id => $(id).value.trim();
+    const today = () => new Date().toISOString().slice(0, 10);
+    const money = n => '₹' + Number(n || 0).toFixed(2);
+
+    // Show a stored 24-hour time (like "14:30") as 12-hour AM/PM (like "2:30 PM")
+    const fmtTime = t => {
+      if (!t) return '-';
+      const [h, m] = String(t).split(':').map(Number);
+      return ((h % 12) || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h < 12 ? 'AM' : 'PM');
+    };
+
+    const refresh = () => showTab(currentTab);
+
+    function safe(text) {
+      return String(text ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    const pn = id => findRow('patients', id).name || 'Unknown';
+    const patientName = id => safe(pn(id));
+    const doctorName = id => safe(findRow('users', id).name || 'Unknown');
+    const doctors = () => getTable('users').filter(u => u.role === 'doctor');
+    const TAG_LABEL = { checkedin: 'Checked in', none: 'Not billed' };
+    const tag = s => `<span class="tag ${safe(s)}">${safe(TAG_LABEL[s] || s)}</span>`;
+    const sum = rows => rows.reduce((t, r) => t + r.amount, 0);
+    // True when this appointment already has an active (not cancelled) consultation bill
+    const regBill = pid => getTable('bills').find(b => b.type === 'registration' && b.pid == pid && b.status !== 'Cancelled');
+    const conBill = aid => !!aid && getTable('bills').find(b => b.type === 'consultation' && b.aid == aid && b.status !== 'Cancelled');
+    const hasConBill = aid => !!conBill(aid);
+    const billTag = b => tag(b ? b.status : 'none');
+
+    function settings() {
+      return {
+        regFee: 200, consultFee: 300, clinicName: 'MEDCARE CLINIC', clinicPhone: '+91 471 2345678',
+        clinicAddress: 'MG Road, Thiruvananthapuram, Kerala', ...(getTable('settings')[0] || {})
+      };
+    }
+
+    // Next code like P-1003 / REG002 from a list of rows
+    function nextCode(rows, prefix, start, pad) {
+      const n = rows.reduce((m, r) => Math.max(m, parseInt(String(r.code || '').replace(/\D/g, '')) || 0), start - 1) + 1;
+      return prefix + (pad ? String(n).padStart(pad, '0') : n);
+    }
+
+    function makeTable(titles, rows, emptyMessage) {
+      if (rows.length === 0) return `<div class="empty">${emptyMessage}</div>`;
+      const head = titles.map(t => `<th>${t}</th>`).join('');
+      const body = rows.map(cells => '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>').join('');
+      return `<div class="tw"><table><tr>${head}</tr>${body}</table></div>`;
+    }
+
+    function toast(message, bad) {
+      const t = document.createElement('div');
+      t.className = 'toast' + (bad ? ' bad' : '');
+      t.textContent = message;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // One form field. options = list of [value, label] to make a dropdown.
+    function field(id, label, value, type, options) {
+      let input;
+      if (options) input = `<select id="${id}">${value ? '' : '<option value="">Select</option>'}${options.map(o => `<option value="${safe(o[0])}" ${o[0] == value ? 'selected' : ''}>${safe(o[1])}</option>`).join('')}</select>`;
+      else if (type === 'textarea') input = `<textarea id="${id}" rows="2">${safe(value)}</textarea>`;
+      else input = `<input id="${id}" type="${type || 'text'}" value="${safe(value)}">`;
+      return `<label>${label}</label>${input}`;
+    }
+    const opts = (rows, label) => rows.map(r => [r.id, label(r)]);
+    const plain = list => list.map(x => [x, x]);
+
+    // Popup: save() returns an error message, or nothing when it worked
+    function openForm(title, html, save) {
+      $('dlgTitle').textContent = title;
+      $('dlgBody').innerHTML = html;
+      $('dlgError').textContent = '';
+      onSave = save;
+      $('dlgSave').classList.toggle('hidden', !save);
+      if (!$('dlg').open) $('dlg').showModal();
+    }
+    const openInfo = (title, html) => openForm(title, html, null);
+    function submitForm() {
+      const error = onSave();
+      if (error) $('dlgError').textContent = error;
+      else $('dlg').close();
+    }
+
+
+    // =====================================================
+    // 4. LOGIN / LOGOUT
+    // =====================================================
+    function login() {
+      const found = getTable('users').find(u =>
+        u.role === 'reception' && u.username === val('username') && u.password === $('password').value);
+      if (!found) { $('loginError').textContent = 'Wrong username or password.'; return; }
+      localStorage.setItem('cms_session', found.id);
+      openPortal(found);
+    }
+    function logout() { localStorage.removeItem('cms_session'); location.reload(); }
+
+    const TABS = {
+      dashboard: ['Dashboard', drawDashboard], patients: ['Patients', drawPatients], doctors: ['Doctors', drawDoctors],
+      appts: ['Appointments', drawAppts], billing: ['Billing', drawBilling], reports: ['Reports', drawReports], settings: ['Settings', drawSettings]
+    };
+
+    function openPortal(u) {
+      user = u;
+      $('loginPage').classList.add('hidden');
+      $('portal').classList.remove('hidden');
+      $('who').textContent = u.name;
+      $('nav').innerHTML = Object.keys(TABS).map(t => `<button id="tab-${t}" onclick="showTab('${t}')">${TABS[t][0]}</button>`).join('');
+      showTab('dashboard');
+    }
+    function showTab(name) {
+      currentTab = name;
+      for (const t in TABS) $('tab-' + t).classList.toggle('active', t === name);
+      TABS[name][1]();
+    }
+
+
+    // =====================================================
+    // 5. DASHBOARD
+    // =====================================================
+    function drawDashboard() {
+      const t = today(), ta = getTable('appts').filter(a => a.date === t && a.status !== 'cancelled');
+      const paid = getTable('bills').filter(b => b.date === t && b.status === 'Paid');
+      const queue = ta.filter(a => a.status === 'checkedin' && a.token).sort((a, b) => a.token.localeCompare(b.token));
+      const c = (l, v) => `<div class="card"><small>${l}</small><b>${v}</b></div>`;
+      const recent = getTable('patients').slice().reverse().slice(0, 5);
+
+      $('page').innerHTML = `<h2>Dashboard</h2><div class="cards">
+    ${c('Total patients', getTable('patients').length)}${c("Today's appointments", ta.length)}${c("Today's tokens", ta.filter(a => a.token).length)}
+    ${c('Doctors', doctors().length)}${c('Pending appointments', ta.filter(a => a.status === 'booked' || a.status === 'checkedin').length)}
+    ${c('Completed appointments', ta.filter(a => a.status === 'completed').length)}
+    ${c("Today's registration revenue", money(sum(paid.filter(b => b.type === 'registration'))))}
+    ${c("Today's consultation revenue", money(sum(paid.filter(b => b.type === 'consultation'))))}</div>
+    <div class="box"><h2>Quick actions</h2><div class="bar">
+      <button onclick="patientForm()">Register patient</button><button onclick="apptForm()">Book appointment</button>
+      <button onclick="showTab('appts')">Generate token</button>
+      <button onclick="billForm('registration')">Registration bill</button><button onclick="billForm('consultation')">Consultation bill</button></div></div>
+    <div class="two"><div><h2>Today's appointments</h2>${makeTable(['Time', 'Patient', 'Doctor', 'Token', 'Status'],
+        ta.sort((a, b) => a.time.localeCompare(b.time)).map(a => [fmtTime(a.time), patientName(a.pid), doctorName(a.did), safe(a.token || '-'), tag(a.status)]), 'No appointments today.')}</div>
+    <div><div class="cards" style="grid-template-columns:1fr">${c('Current token', queue[0] ? queue[0].token + ' - ' + patientName(queue[0].pid) : '-')}
+      ${c('Next token', queue[1] ? queue[1].token + ' - ' + patientName(queue[1].pid) : '-')}${c('Waiting count', queue.length)}</div>
+      <h2>Recently registered</h2>${makeTable(['ID', 'Name'], recent.map(p => [safe(p.code), safe(p.name)]), 'No patients yet.')}</div></div>`;
+    }
+
+
+    // =====================================================
+    // 6. PATIENTS  (register, search, view, edit, delete, assign doctor)
+    // =====================================================
+    function drawPatients() {
+      $('page').innerHTML = `<h2>Patients</h2><div class="bar"><input id="q" placeholder="Search by ID, name or phone" oninput="drawPatientList()">
+    <button onclick="patientForm()">+ Register patient</button></div><div id="list"></div>`;
+      drawPatientList();
+    }
+    function drawPatientList() {
+      const q = $('q').value.trim().toLowerCase();
+      const rows = getTable('patients').filter(p => [p.code, p.name, p.phone].some(x => String(x || '').toLowerCase().includes(q)))
+        .map(p => [safe(p.code), safe(p.name), safe(p.age), safe(p.gender), safe(p.phone), p.did ? doctorName(p.did) : '-',
+        `<button class="light" onclick="viewPatient(${p.id})">View</button> <button class="light" onclick="patientForm(${p.id})">Edit</button> <button class="red" onclick="deletePatient(${p.id})">Delete</button>`]);
+      $('list').innerHTML = makeTable(['ID', 'Name', 'Age', 'Gender', 'Phone', 'Assigned doctor', ''], rows, 'No patients found.');
+    }
+
+    function patientForm(id) {
+      const p = id ? findRow('patients', id) : {};
+      openForm(id ? 'Edit patient' : 'Register patient',
+        field('f_name', 'Full name *', p.name) + field('f_age', 'Age *', p.age, 'number') +
+        field('f_gender', 'Gender *', p.gender, '', plain(['Male', 'Female', 'Other'])) + field('f_phone', 'Phone *', p.phone) +
+        field('f_email', 'Email', p.email, 'email') + field('f_blood', 'Blood group', p.blood, '', plain(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'])) +
+        field('f_emergency', 'Emergency contact', p.emergency) + field('f_did', 'Assigned doctor', p.did, '', opts(doctors(), d => d.name)) +
+        field('f_address', 'Address *', p.address, 'textarea'),
+        () => {
+          const v = {
+            name: val('f_name'), age: val('f_age'), gender: val('f_gender'), phone: val('f_phone'), email: val('f_email'),
+            blood: val('f_blood'), emergency: val('f_emergency'), did: val('f_did') ? Number(val('f_did')) : '', address: val('f_address')
+          };
+          if (!v.name) return 'Patient name is required.';
+          if (!/^[A-Za-z][A-Za-z .'-]{2,}$/.test(v.name)) return 'Please enter a valid name (letters only, at least 3 characters).';
+          if (v.age === '' || !(Number.isInteger(+v.age) && +v.age >= 0 && +v.age <= 120)) return 'Please enter a valid age (0-120).';
+          if (!v.gender) return 'Please select a gender.';
+          if (!/^\d{10}$/.test(v.phone)) return 'Please enter a valid 10-digit phone number.';
+          if (v.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email)) return 'Please enter a valid email address.';
+          if (v.emergency && !/^\d{10}$/.test(v.emergency)) return 'Emergency contact must be a valid 10-digit number.';
+          if (!v.address) return 'Address is required.';
+          if (getTable('patients').some(x => x.id != id && x.phone === v.phone && x.name.toLowerCase() === v.name.toLowerCase())) return 'This patient is already registered.';
+          if (id && p.did && String(v.did) !== String(p.did) && getTable('appts').some(x => x.pid == id && (x.status === 'booked' || x.status === 'checkedin')))
+            return 'The assigned doctor cannot be changed while the patient has an active appointment. Cancel or complete it first.';
+          v.age = +v.age;
+          if (id) { updateRow('patients', id, v); toast('Patient updated successfully.'); refresh(); return; }
+          v.code = nextCode(getTable('patients'), 'P-', 1001); v.regDate = today();
+          const added = addRow('patients', v);
+          toast('Patient registered successfully.'); refresh();
+          setTimeout(() => { if (confirm('Generate the registration bill for ' + v.name + ' now?')) billForm('registration', added.id); }, 0);
+        });
+    }
+
+    function deletePatient(id) {
+      const mine = getTable('appts').filter(a => a.pid == id);
+      if (mine.some(a => a.status === 'completed' || a.token))
+        return toast('This patient has completed or token-issued appointments and cannot be deleted.', true);
+      if (['consults', 'rx', 'labs', 'bills'].some(t => getTable(t).some(r => r.pid == id)))
+        return toast('This patient has registration, consultation or medical records and cannot be deleted.', true);
+      if (!confirm('Delete this patient and their appointments?')) return;
+      getTable('appts').filter(a => a.pid == id).forEach(a => deleteRow('appts', a.id));
+      deleteRow('patients', id);
+      toast('Patient deleted successfully.'); refresh();
+    }
+
+    // Patient profile: details, appointments, tokens and bills (no diagnosis or prescriptions)
+    function viewPatient(id) {
+      const p = findRow('patients', id);
+      const d = (l, v) => `<p><small>${l}</small><br><b>${safe(v || '-')}</b></p>`;
+      const appts = getTable('appts').filter(a => a.pid == id), bills = getTable('bills').filter(b => b.pid == id);
+      openInfo('Patient: ' + safe(p.name),
+        `<div class="bar" style="align-items:flex-start">${d('ID', p.code)}${d('Age / Gender', p.age + ' / ' + p.gender)}${d('Phone', p.phone)}${d('Email', p.email)}${d('Blood group', p.blood)}${d('Emergency contact', p.emergency)}${d('Registered', p.regDate || (p.created || '').slice(0, 10))}${d('Assigned doctor', p.did ? findRow('users', p.did).name : '')}</div>
+    ${d('Address', p.address)}
+    <h3>Appointments and tokens</h3>${makeTable(['Date', 'Time', 'Doctor', 'Token', 'Status'], appts.map(a => [safe(a.date), fmtTime(a.time), doctorName(a.did), safe(a.token || '-'), tag(a.status)]), 'No appointments.')}
+    <h3>Bills</h3>${makeTable(['Bill', 'Type', 'Amount', 'Date', 'Status'], bills.map(b => [safe(b.code), safe(b.type), money(b.amount), safe(b.date), tag(b.status)]), 'No bills.')}
+    <p><small>Diagnosis and prescription details are not shown to the receptionist.</small></p>`);
+    }
+
+
+    // =====================================================
+    // 7. DOCTORS  (view only)
+    // =====================================================
+    function drawDoctors() {
+      const t = today(), A = getTable('appts').filter(a => a.date === t && a.status !== 'cancelled');
+      const rows = doctors().map(d => {
+        const mine = A.filter(a => a.did == d.id), waiting = mine.filter(a => a.status === 'checkedin').length;
+        return [safe(d.name), mine.length, waiting, money(settings().consultFee), `<span class="tag ${waiting ? 'booked' : 'checkedin'}">${waiting ? 'Busy' : 'Available'}</span>`];
+      });
+      $('page').innerHTML = '<h2>Doctors</h2>' + makeTable(['Doctor', "Today's appointments", 'Waiting now', 'Consultation fee', 'Status'], rows, 'No doctors found.') +
+        '<p><small>Doctor details are managed by the admin. Status is Busy while patients are checked in and waiting.</small></p>';
+    }
+
+
+    // =====================================================
+    // 8. APPOINTMENTS + TOKENS
+    // =====================================================
+    function drawAppts() {
+      $('page').innerHTML = `<h2>Appointments and tokens</h2><div class="bar"><input id="q" placeholder="Search patient or doctor" oninput="drawApptList()">
+    <input id="qd" type="date" oninput="drawApptList()"><select id="qs" onchange="drawApptList()"><option value="">All status</option>
+    ${['booked', 'checkedin', 'completed', 'cancelled'].map(s => `<option>${s}</option>`).join('')}</select>
+    <button onclick="apptForm()">+ Book appointment</button></div><div id="list"></div>`;
+      drawApptList();
+    }
+    function drawApptList() {
+      const q = $('q').value.trim().toLowerCase(), d = $('qd').value, s = $('qs').value;
+      const rows = getTable('appts').filter(a => (!q || (pn(a.pid) + ' ' + (findRow('users', a.did).name || '')).toLowerCase().includes(q)) && (!d || a.date === d) && (!s || a.status === s))
+        .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))
+        .map(a => [safe(a.date) + ' ' + fmtTime(a.time), patientName(a.pid), doctorName(a.did), safe(a.reason),
+        a.token ? `<span class="tag token">${safe(a.token)}</span>` : '-', tag(a.status),
+        billTag(regBill(a.pid)), a.status === 'completed' ? billTag(conBill(a.id)) : '-',
+        (a.status === 'booked' ? `<button class="light" onclick="generateToken(${a.id})">Generate token</button> <button class="light" onclick="apptForm(${a.id})">Edit</button> ` : '') +
+        (a.status === 'checkedin' ? `<button class="light" onclick="setAppt(${a.id},'completed')">Complete</button> ` : '') +
+        (a.status === 'completed' && !hasConBill(a.id) ? `<button class="light" onclick="billForm('consultation',null,${a.id})">Generate bill</button>` : '') +
+        (a.status === 'booked' || a.status === 'checkedin' ? `<button class="red" onclick="cancelAppt(${a.id})">Cancel</button>` : '')]);
+      $('list').innerHTML = makeTable(['When', 'Patient', 'Doctor', 'Reason', 'Token', 'Status', 'Reg. bill', 'Consult. bill', ''], rows, 'No appointments found.');
+    }
+
+    function apptForm(id) {
+      const a = id ? findRow('appts', id) : {};
+      openForm(id ? 'Edit appointment' : 'Book appointment',
+        field('f_pid', 'Patient *', a.pid, '', opts(getTable('patients'), p => p.code + ' - ' + p.name + (p.did ? '' : ' (no doctor assigned)'))) +
+        field('f_did', 'Doctor *', a.did, '', opts(doctors(), d => d.name)) +
+        field('f_date', 'Date *', a.date || today(), 'date') + field('f_time', 'Time *', a.time, 'time') + field('f_reason', 'Reason *', a.reason, 'textarea'),
+        () => {
+          const v = { pid: Number(val('f_pid')), did: Number(val('f_did')), date: val('f_date'), time: val('f_time'), reason: val('f_reason') };
+          if (id && a.status !== 'booked') return 'Only booked appointments can be edited.';
+          const pt = findRow('patients', v.pid);
+          if (!pt.id) return 'Please select a patient.';
+          if (!pt.did) return 'Assign a doctor to this patient before booking an appointment.';
+          if (findRow('users', v.did).role !== 'doctor') return 'Please select a valid doctor.';
+          if (v.did != pt.did) return "The appointment doctor must be the patient's assigned doctor. Change the assigned doctor in the patient record first.";
+          if (!v.date) return 'Appointment date is required.';
+          if (v.date < today()) return 'Appointment date cannot be in the past.';
+          if (!v.time) return 'Appointment time is required.';
+          if ((!id || v.date !== a.date || v.time !== a.time) && v.date === today() && v.time < new Date().toTimeString().slice(0, 5)) return 'Appointment time cannot be in the past.';
+          if (!v.reason) return 'Reason for visit is required.';
+          const same = getTable('appts').filter(x => x.id != id && x.date === v.date && x.time === v.time && (x.status === 'booked' || x.status === 'checkedin'));
+          if (same.some(x => x.did === v.did)) return 'Doctor is not available at this time.';
+          if (same.some(x => x.pid === v.pid)) return 'This patient already has an appointment at that time.';
+          if (id) updateRow('appts', id, v); else addRow('appts', { ...v, status: 'booked', token: '' });
+          toast(id ? 'Appointment updated successfully.' : 'Appointment created successfully.'); refresh();
+        });
+      // Picking a patient fills in that patient's assigned doctor
+      $('f_pid').onchange = () => { const p = findRow('patients', Number($('f_pid').value)); if (p.did) $('f_did').value = p.did; };
+    }
+
+    // Token generation (also moves the appointment to Checked in). Tokens are T001, T002 ... and restart every day.
+    function generateToken(id) {
+      const a = findRow('appts', id), p = findRow('patients', a.pid);
+      if (!a.id) return toast('Appointment not found.', true);
+      if (a.status === 'cancelled') return toast('A token cannot be generated for a cancelled appointment.', true);
+      if (a.token) return toast('This appointment already has token ' + a.token + '.', true);
+      if (a.status !== 'booked') return toast('A token can only be generated for a booked appointment.', true);
+      if (!p.id) return toast('Patient not found.', true);
+      if (!p.did) return toast('Assign a doctor to this patient first.', true);
+      if (findRow('users', a.did).role !== 'doctor') return toast('This appointment does not have a valid doctor.', true);
+      if (a.date !== today()) return toast('A token can only be generated on the appointment date.', true);
+      const rb = regBill(p.id);
+      if (!rb) return toast('Generate the registration bill for this patient first.', true);
+      if (rb.status !== 'Paid') return toast('The registration bill must be marked Paid before a token can be generated.', true);
+      const n = getTable('appts').filter(x => x.date === a.date && x.token).reduce((m, x) => Math.max(m, parseInt(x.token.slice(1)) || 0), 0) + 1;
+      const token = 'T' + String(n).padStart(3, '0');
+      updateRow('appts', id, { status: 'checkedin', token });
+      toast('Token ' + token + ' generated for ' + pn(a.pid) + '.'); refresh();
+    }
+    function setAppt(id, status) {
+      const a = findRow('appts', id);
+      const allowed = { completed: ['checkedin'], cancelled: ['booked', 'checkedin'] };
+      if (!(allowed[status] || []).includes(a.status)) return toast('This status change is not allowed for a ' + a.status + ' appointment.', true);
+      if (status === 'completed' && !a.token) return toast('A token must be generated before the appointment can be completed.', true);
+      updateRow('appts', id, { status });
+      toast('Appointment marked as ' + status + '.'); refresh();
+      if (status === 'completed')
+        setTimeout(() => { if (confirm('Appointment completed. Generate the consultation bill now?')) billForm('consultation', null, id); }, 0);
+    }
+    function cancelAppt(id) { if (confirm('Cancel this appointment?')) { setAppt(id, 'cancelled'); } }
+
+
+    // =====================================================
+    // 9. BILLING  (registration and consultation) + RECEIPT
+    // =====================================================
+    function drawBilling() {
+      $('page').innerHTML = `<h2>Billing</h2><div class="bar"><input id="q" placeholder="Search bill ID or patient" oninput="drawBillList()">
+    <input id="qd" type="date" oninput="drawBillList()"><select id="qt" onchange="drawBillList()"><option value="">All types</option><option>registration</option><option>consultation</option></select>
+    <select id="qs" onchange="drawBillList()"><option value="">All payment status</option><option>Paid</option><option>Pending</option><option>Cancelled</option></select>
+    <button onclick="billForm('registration')">+ Registration bill</button><button onclick="billForm('consultation')">+ Consultation bill</button></div><div id="list"></div>`;
+      drawBillList();
+    }
+    function drawBillList() {
+      const q = $('q').value.trim().toLowerCase(), d = $('qd').value, t = $('qt').value, s = $('qs').value;
+      const rows = getTable('bills').filter(b => (!q || (b.code + ' ' + pn(b.pid)).toLowerCase().includes(q)) && (!d || b.date === d) && (!t || b.type === t) && (!s || b.status === s))
+        .reverse().map(b => [safe(b.code), patientName(b.pid), safe(b.type), b.did ? doctorName(b.did) : '-', money(b.amount), safe(b.date) + ' ' + fmtTime(b.time), safe(b.method),
+        `<select onchange="setBillStatus(${b.id},this.value)">${['Paid', 'Pending', 'Cancelled'].map(x => `<option ${x === b.status ? 'selected' : ''}>${x}</option>`).join('')}</select>`,
+        `<button class="light" onclick="receipt(${b.id})">View</button> <button class="light" onclick="receipt(${b.id},true)">Print</button>`]);
+      $('list').innerHTML = makeTable(['Bill', 'Patient', 'Type', 'Doctor', 'Amount', 'Date', 'Method', 'Payment', ''], rows, 'No bills found.');
+    }
+    function setBillStatus(id, status) {
+      const b = findRow('bills', id);
+      if (b.status === status) return;
+      if (status !== 'Cancelled') {
+        const dup = getTable('bills').some(x => x.id != id && x.status !== 'Cancelled' && x.type === b.type &&
+          (b.type === 'registration' ? x.pid == b.pid : (b.aid && x.aid == b.aid)));
+        if (dup) { refresh(); return toast('Another active ' + b.type + ' bill already exists for this ' + (b.type === 'registration' ? 'patient' : 'appointment') + '.', true); }
+      }
+      updateRow('bills', id, { status });
+      toast(status === 'Paid' ? 'Payment completed successfully.' : 'Payment status updated.'); refresh();
+    }
+
+    function billForm(type, pid, aid) {
+      const reg = type === 'registration', s = settings();
+      // Consultation bills are only for completed appointments that have not been billed yet
+      const billable = getTable('appts').filter(a => a.status === 'completed' && a.token && !hasConBill(a.id));
+      if (!reg && !billable.length) return toast('No completed appointments are waiting for a consultation bill.', true);
+      openForm(reg ? 'Registration bill' : 'Consultation bill',
+        (reg ? field('f_pid', 'Patient *', pid, '', opts(getTable('patients'), p => p.code + ' - ' + p.name))
+          : field('f_aid', 'Completed appointment *', aid, '', opts(billable, a => pn(a.pid) + ' - ' + (findRow('users', a.did).name || '') + ' - ' + a.date + ' ' + fmtTime(a.time)))) +
+        field('f_amount', (reg ? 'Registration fee' : 'Consultation fee') + ' (₹) *', reg ? s.regFee : s.consultFee, 'number') +
+        field('f_method', 'Payment method', 'Cash', '', plain(['Cash', 'UPI', 'Card'])) + field('f_status', 'Payment status', 'Paid', '', plain(['Paid', 'Pending', 'Cancelled'])),
+        () => {
+          const ap = reg ? {} : findRow('appts', Number(val('f_aid')));
+          const p = findRow('patients', reg ? Number(val('f_pid')) : ap.pid), did = reg ? '' : ap.did;
+          if (!reg && !ap.id) return 'Please select a completed appointment.';
+          if (!reg && ap.status !== 'completed') return 'Consultation bill can only be generated after the appointment is completed.';
+          if (!reg && !ap.token) return 'Consultation bill requires the appointment to have a token.';
+          if (!reg && hasConBill(ap.id)) return 'A consultation bill already exists for this appointment.';
+          if (!p.id) return 'Please select a patient.';
+          if (!(+val('f_amount') > 0)) return 'Please enter a valid amount.';
+          if (reg && getTable('bills').some(b => b.type === 'registration' && b.pid == p.id && b.status !== 'Cancelled')) return 'A registration bill already exists for this patient.';
+          const bill = addRow('bills', {
+            code: nextCode(getTable('bills').filter(b => b.type === type), reg ? 'REG' : 'CON', 1, 3), type, pid: p.id, pcode: p.code, pname: p.name, did, aid: reg ? '' : ap.id,
+            amount: +val('f_amount'), method: val('f_method'), status: val('f_status'), date: today(), time: new Date().toTimeString().slice(0, 5)
+          });
+          toast('Bill generated successfully.'); refresh();
+          setTimeout(() => receipt(bill.id), 0);
+        });
+    }
+
+    function receipt(id, print) {
+      const b = findRow('bills', id), s = settings(), p = findRow('patients', b.pid), con = b.type === 'consultation';
+      const row = (k, v) => `<div class="rr"><span>${k}</span><b>${safe(v)}</b></div>`;
+      openInfo('Receipt', `<div class="receipt"><h2>${safe(s.clinicName)}</h2><p class="c">${safe(s.clinicAddress)}<br>Phone: ${safe(s.clinicPhone)}</p><hr>
+    ${row('Bill Number:', b.code)}${row('Date:', b.date)}${row('Time:', fmtTime(b.time))}<hr>${row('Patient ID:', p.code)}${row('Patient Name:', p.name)}
+    ${con ? row('Doctor:', findRow('users', b.did).name) : ''}<hr>${row('Service:', con ? 'Consultation Fee' : 'Registration Fee')}${row('Amount:', money(b.amount))}
+    ${row('Payment Method:', b.method)}${row('Payment Status:', b.status)}<hr><div class="rr big"><span>Total Amount</span><b>${money(b.amount)}</b></div><p class="c">Thank you.</p></div>
+    <p><button onclick="window.print()">🖨 Print</button></p>`);
+      if (print) setTimeout(() => window.print(), 300);
+    }
+
+
+    // =====================================================
+    // 10. REPORTS
+    // =====================================================
+    let currentReport = null;
+    const REPORTS = {
+      'Patient registrations': d => [['ID', 'Name', 'Age', 'Gender', 'Phone', 'Registered'], d.P.map(p => [p.code, p.name, p.age, p.gender, p.phone, p.regDate || p.created.slice(0, 10)])],
+      'Doctor assignments': d => [['Patient', 'Doctor', 'Registered'], d.P.filter(p => p.did).map(p => [p.name, findRow('users', p.did).name, p.regDate || p.created.slice(0, 10)])],
+      'Appointments': d => [['Date', 'Time', 'Patient', 'Doctor', 'Status'], d.A.map(a => [a.date, fmtTime(a.time), pn(a.pid), findRow('users', a.did).name, a.status])],
+      'Tokens': d => [['Date', 'Token', 'Patient', 'Doctor', 'Status'], d.A.filter(a => a.token).map(a => [a.date, a.token, pn(a.pid), findRow('users', a.did).name, a.status])],
+      'Registration bills': d => [['Bill', 'Patient', 'Amount', 'Date', 'Method', 'Status'], d.B.filter(b => b.type === 'registration').map(b => [b.code, pn(b.pid), b.amount, b.date, b.method, b.status])],
+      'Consultation bills': d => [['Bill', 'Patient', 'Doctor', 'Amount', 'Date', 'Method', 'Status'], d.B.filter(b => b.type === 'consultation').map(b => [b.code, pn(b.pid), findRow('users', b.did).name, b.amount, b.date, b.method, b.status])],
+      'Daily revenue': d => {
+        const m = {}; d.B.filter(b => b.status === 'Paid').forEach(b => { const x = m[b.date] = m[b.date] || [0, 0]; x[b.type === 'registration' ? 0 : 1] += b.amount; });
+        return [['Date', 'Registration', 'Consultation', 'Total'], Object.keys(m).sort().map(k => [k, m[k][0], m[k][1], m[k][0] + m[k][1]])];
+      }
+    };
+
+    function addDays(d, n) { const x = new Date(d + 'T00:00:00Z'); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); }
+    function reportRange() {
+      const v = $('rng').value, t = today();
+      if (v === 'today') return [t, t];
+      if (v === 'yesterday') return [addDays(t, -1), addDays(t, -1)];
+      if (v === 'week') return [addDays(t, -((new Date(t + 'T00:00:00Z').getUTCDay() + 6) % 7)), t];
+      if (v === 'month') return [t.slice(0, 8) + '01', t];
+      return [val('from') || '0000-00-00', val('to') || '9999-99-99'];
+    }
+
+    function drawReports() {
+      $('page').innerHTML = `<h2>Reports</h2><div class="bar"><select id="rt" onchange="drawReport()">${Object.keys(REPORTS).map(k => `<option>${k}</option>`).join('')}</select>
+    <select id="rng" onchange="$('from').classList.toggle('hidden',this.value!=='custom');$('to').classList.toggle('hidden',this.value!=='custom');drawReport()">
+    <option value="today">Today</option><option value="yesterday">Yesterday</option><option value="week">This week</option><option value="month">This month</option><option value="custom">Custom date</option></select>
+    <input id="from" type="date" class="hidden" onchange="drawReport()"><input id="to" type="date" class="hidden" onchange="drawReport()">
+    <button onclick="window.print()">🖨 Print report</button><button onclick="exportReport()">⬇ Export CSV</button></div><div id="printArea"></div>`;
+      drawReport();
+    }
+    function drawReport() {
+      const [f, t] = reportRange(), inR = x => x >= f && x <= t;
+      const d = { P: getTable('patients').filter(p => inR(p.regDate || p.created.slice(0, 10))), A: getTable('appts').filter(a => inR(a.date)), B: getTable('bills').filter(b => inR(b.date)) };
+      const paid = d.B.filter(b => b.status === 'Paid'), reg = sum(paid.filter(b => b.type === 'registration')), con = sum(paid.filter(b => b.type === 'consultation'));
+      const name = $('rt').value, [head, rows] = REPORTS[name](d);
+      currentReport = { name, head, rows };
+      const c = (l, v) => `<div class="card"><small>${l}</small><b>${v}</b></div>`;
+      $('printArea').innerHTML = `<div class="cards">${c('Total patients', d.P.length)}${c('Total appointments', d.A.length)}${c('Total tokens', d.A.filter(a => a.token).length)}
+    ${c('Registration revenue', money(reg))}${c('Consultation revenue', money(con))}${c('Total revenue', money(reg + con))}</div>
+    <h3>${name}</h3>${makeTable(head, rows.map(r => r.map(safe)), 'No data for this period.')}`;
+    }
+    function exportReport() {
+      if (!currentReport || !currentReport.rows.length) return toast('No data to export.', true);
+      const csv = [currentReport.head, ...currentReport.rows].map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = 'report_' + currentReport.name.replace(/ /g, '_') + '.csv';
+      a.click();
+      toast('Report exported successfully.');
+    }
+
+
+    // =====================================================
+    // 11. SETTINGS
+    // =====================================================
+    function drawSettings() {
+      const s = settings();
+      $('page').innerHTML = `<h2>Settings</h2><div class="box" style="max-width:600px">
+    ${field('s_name', 'Receptionist name', user.name)}${field('s_user', 'Username', user.username)}
+    ${field('s_clinic', 'Clinic name', s.clinicName)}${field('s_phone', 'Clinic phone', s.clinicPhone)}${field('s_addr', 'Clinic address', s.clinicAddress, 'textarea')}
+    ${field('s_reg', 'Registration fee (₹)', s.regFee, 'number')}${field('s_con', 'Default consultation fee (₹)', s.consultFee, 'number')}
+    <p id="sErr" class="err"></p><button onclick="saveSettings()">Save settings</button> <button class="light" onclick="logout()">Logout</button></div>`;
+    }
+    function saveSettings() {
+      const v = { name: val('s_name'), username: val('s_user') }, c = { clinicName: val('s_clinic'), clinicPhone: val('s_phone'), clinicAddress: val('s_addr'), regFee: +val('s_reg'), consultFee: +val('s_con') };
+      let err = '';
+      if (v.name.length < 3) err = 'Receptionist name is required (at least 3 characters).';
+      else if (!/^[A-Za-z0-9_]{3,20}$/.test(v.username)) err = 'Username must be 3-20 letters, numbers or underscores.';
+      else if (getTable('users').some(u => u.id != user.id && u.username === v.username)) err = 'That username is already taken.';
+      else if (!c.clinicName || !c.clinicAddress) err = 'Clinic name and address are required.';
+      else if (!/^[0-9+\-\s]{7,15}$/.test(c.clinicPhone)) err = 'Please enter a valid clinic phone number.';
+      else if (!(c.regFee >= 0) || !(c.consultFee >= 0) || val('s_reg') === '' || val('s_con') === '') err = 'Please enter valid fee amounts.';
+      $('sErr').textContent = err;
+      if (err) return;
+      updateRow('users', user.id, v); user = { ...user, ...v };
+      saveTable('settings', [{ ...(getTable('settings')[0] || { id: 1 }), ...c }]);
+      $('who').textContent = v.name;
+      toast('Settings saved successfully.');
+    }
+
+
+    // =====================================================
+    // 12. START
+    // =====================================================
+    createSampleData();
+
+    // If the receptionist is already signed in, skip the login page
+    const savedUser = findRow('users', localStorage.getItem('cms_session'));
+    if (savedUser.role === 'reception') openPortal(savedUser);
+  </script>
+</body>
+
+</html>
