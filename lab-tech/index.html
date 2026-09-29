@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Lab Technician · Clinic Management</title>
+
+<link rel="stylesheet" href="css/lab.css">
+
+<script src="scripts/storage.js" defer></script>
+<script src="scripts/utils.js" defer></script>
+<script src="scripts/dashboard.js" defer></script>
+<script src="scripts/orders.js" defer></script>
+<script src="scripts/tests.js" defer></script>
+<script src="scripts/bills.js" defer></script>
+<script src="scripts/app.js" defer></script>
+
+</head>
+
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar" id="sidebar" aria-label="Lab navigation">
+
+    <div class="brand">
+
+      <span class="brand-mark" aria-hidden="true"></span>
+
+      <div>
+
+        <strong>Campus Clinic</strong><small>Laboratory</small>
+
+      </div>
+
+    </div>
+
+    <nav>
+
+      <a href="#/dashboard" data-nav="dashboard">Dashboard</a>
+
+      <a href="#/orders" data-nav="orders">Lab Orders</a>
+
+      <a href="#/pending" data-nav="pending">Pending Orders</a>
+
+      <a href="#/completed" data-nav="completed">Completed Orders</a>
+
+      <a href="#/tests" data-nav="tests">Lab Tests</a>
+
+      <a href="#/bills" data-nav="bills">Bills</a>
+
+      <button type="button" class="nav-logout" data-action="logout">Logout</button>
+
+    </nav>
+
+  </aside>
+
+  <div class="content">
+
+    <header class="topbar">
+
+      <button type="button" class="menu-btn" data-action="toggle-menu" aria-label="Toggle navigation">☰</button>
+
+      <h1 id="page-title">Dashboard</h1>
+
+      <div class="who">
+        <span id="today"></span>
+        <span class="avatar" aria-hidden="true">LT</span>
+        <span>Lab Technician</span>
+
+      </div>
+
+    </header>
+
+    <main id="view" tabindex="-1"></main>
+
+  </div>
+
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+
+  <div id="dlg-body"></div>
+
+</dialog>
+
+<div id="toasts" aria-live="polite"></div>
+
+</body>
+
+</html>
